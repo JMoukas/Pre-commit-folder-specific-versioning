@@ -10,7 +10,7 @@ repos:
         stages: [pre-commit]
         require_serial: true
 
-      # Message-driven for non-TTY (GUIs)
+      # Message-driven for github desktop (GUIs)
       - id: semantic-bump-trailer
         name: Add trailers / enforce message-driven bump (non-TTY)
         entry: python3 scripts/semantic_bump.py
