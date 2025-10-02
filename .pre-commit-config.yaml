@@ -1,0 +1,20 @@
+repos:
+  - repo: local
+    hooks:
+      # Stage 1: before commit is created — bump versions interactively
+      - id: semantic-bump
+        name: Semantic bump per catalog (interactive)
+        entry: python3 scripts/semantic_bump.py
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        require_serial: true
+
+      # Stage 2: after message is written — append trailers
+      - id: semantic-bump-trailer
+        name: Add pre-commit trailers
+        entry: python3 scripts/semantic_bump.py
+        language: system
+        stages: [commit-msg]
+        # commit-msg hooks are invoked with the commit message file path as argv[1]
+        # so leave pass_filenames as default (true) for this one

@@ -1,0 +1,66 @@
+name: enforce-catalog-bumps
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [ main ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute diff range
+        id: range
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin ${{ github.base_ref }} --depth=1
+            echo "range=origin/${{ github.base_ref }}...HEAD" >> $GITHUB_OUTPUT
+          else
+            echo "range=HEAD~1...HEAD" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Collect changes and latest commit message
+        id: collect
+        run: |
+          RANGE="${{ steps.range.outputs.range }}"
+          git log -1 --pretty=%B > .git/lastmsg.txt
+          git diff --name-only --diff-filter=ACMR "$RANGE" > changed.txt
+          echo "Changed files:"
+          cat changed.txt || true
+
+      - name: Enforce per-catalog bumps
+        run: |
+          set -e
+          CHANGED=$(cat changed.txt || true)
+
+          fail=0
+          check_catalog () {
+            C="$1"
+            INIT="$2"
+            PY_CHANGED=$(echo "$CHANGED" | grep -E "^$C/.*\.py$" || true)
+            if [ -n "$PY_CHANGED" ]; then
+              INIT_CHANGED=$(echo "$CHANGED" | grep -E "^$INIT$" || true)
+              if [ -z "$INIT_CHANGED" ]; then
+                echo "❌ $C: Python changed but version not bumped in $INIT"
+                fail=1
+              fi
+            fi
+          }
+
+          check_catalog "catalogs/catalog_alpha" "catalogs/catalog_alpha/__init__.py"
+          check_catalog "catalogs/catalog_beta"  "catalogs/catalog_beta/__init__.py"
+          check_catalog "catalogs/catalog_gamma" "catalogs/catalog_gamma/__init__.py"
+
+          ANY_PY=$(echo "$CHANGED" | grep -E "^catalogs/catalog_(alpha|beta|gamma)/.*\.py$" || true)
+          if [ -n "$ANY_PY" ]; then
+            if ! grep -q "^Precommit-Run: true" .git/lastmsg.txt; then
+              echo "❌ Missing 'Precommit-Run: true' trailer in latest commit message"
+              fail=1
+            fi
+          fi
+
+          exit $fail
