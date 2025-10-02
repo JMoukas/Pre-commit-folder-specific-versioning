@@ -9,4 +9,5 @@ while True:
         agape = True
         mesei = False
         hello = "yes"
+        yes = 'ej'
         break

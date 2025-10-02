@@ -5,4 +5,5 @@ b = 0
 while True:
     b += 1
     if b == 10:
+        g = "a"
         break
