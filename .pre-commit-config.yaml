@@ -1,18 +1,9 @@
 repos:
   - repo: local
     hooks:
-      # Interactive when in a terminal
-      - id: semantic-bump
-        name: Semantic bump per catalog (interactive when TTY)
-        entry: python3 scripts/semantic_bump.py
+      - id: catalog-guard
+        name: Catalog guard (commit-msg)
+        entry: python scripts/semantic_versioning.py
         language: system
         pass_filenames: false
-        stages: [pre-commit]
-        require_serial: true
-
-      # Message-driven for github desktop (GUIs)
-      - id: semantic-bump-trailer
-        name: Add trailers / enforce message-driven bump (non-TTY)
-        entry: python3 scripts/semantic_bump.py
-        language: system
         stages: [commit-msg]
