@@ -8,6 +8,4 @@ while True:
         c=15
         agape = True
         mesei = False
-        hello = "yes"
-        yes = 'ej'
         break
