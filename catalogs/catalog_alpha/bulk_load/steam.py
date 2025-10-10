@@ -7,5 +7,4 @@ while True:
     if a == 10:
         c=15
         agape = True
-        mesei = False
         break
